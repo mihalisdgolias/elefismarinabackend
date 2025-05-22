@@ -10,13 +10,22 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS configuration
+tconst FRONTEND = process.env.CORS_ORIGIN; // eg. https://mango-hill-02c811a0f.6.azurestaticapps.net
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN,
-  methods: ['GET','POST','PUT','DELETE'],
-  credentials: true
+  origin: FRONTEND,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
+
+// Preflight handler
+app.options('*', cors(corsOptions));
+
+// Enable CORS for all routes
 app.use(cors(corsOptions));
 
+// JSON body parsing
 app.use(express.json());
 
 // Auth and booking endpoints
@@ -34,6 +43,7 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
