@@ -10,66 +10,31 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration
-const FRONTEND = process.env.CORS_ORIGIN || 'https://mango-hill-02c811a0f.6.azurestaticapps.net'; // Ensure this is set in .env
+// ... (your CORS configuration and other app.use middleware like express.json())
+// For example:
+// app.use(cors(corsOptions)); // Assuming corsOptions is defined
+app.use(express.json());   // Ensure this is present
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [FRONTEND]; // Ensure only the frontend domain is allowed
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true, // Ensure credentials are properly passed
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-// Enable CORS globally with correct options
-app.use(cors(corsOptions));
-
-// Explicitly handle preflight requests
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Origin', FRONTEND);
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return res.sendStatus(200);
-  }
-  next();
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ADD THIS NEW TEST ROUTE HERE:
+app.get('/api/ping', (req, res) => {
+  // This log should appear in your Azure App Service Log Stream
+  console.log('PING! >>> /api/ping route was hit at ' + new Date().toISOString());
+  
+  // Send a JSON response back to the browser
+  res.status(200).json({ 
+    success: true, 
+    message: 'Pong!', 
+    timestamp: new Date().toISOString() 
+  });
 });
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-// JSON body parsing
-app.use(express.json());
-
-// Auth and booking endpoints
+// Your existing routes
 app.use('/api/auth', authRoutes);
 app.use('/api/booking', bookingRoutes);
 
-// Health-check / DB-test endpoint
-app.get('/api/test-db', async (req, res) => {
-  try {
-    const result = await db.query('SELECT NOW()');
-    res.json({ success: true, time: result.rows[0] });
-  } catch (err) {
-    console.error('DB test error:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Debug endpoint to check live CORS settings
-app.get('/api/test-cors', (req, res) => {
-  res.set({
-    'Access-Control-Allow-Origin': FRONTEND,
-    'Access-Control-Allow-Credentials': 'true',
-  });
-  res.json({ message: 'CORS headers set correctly!' });
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// ... (your /api/test-db route, app.listen, etc.)
+// For example:
+// app.get('/api/test-db', async (req, res) => { ... });
+// app.listen(PORT, () => { ... });
